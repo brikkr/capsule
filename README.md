@@ -1,2 +1,2 @@
 # solid-ui
-Front-End Framework Dedicated to Solid Application.
+Front-End Framework dedicated to Solid Application.
