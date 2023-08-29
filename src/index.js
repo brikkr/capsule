@@ -1,44 +1,25 @@
-import { h } from "snabbdom";
-import * as snabbdom from "snabbdom";
 
-const patch = snabbdom.init([
-    snabbdom.propsModule
-]);
-const createElement = tagName => (strings, ...args) => ({
-    type: "element", 
-    template: h(
-        tagName,
-        {},
-        // transform Literals to text
-        strings.reduce(
-            (acc, currentString, index) => acc + currentString + (args[index] || ""),
-            ""
-          )
-      )
-  });
+var hyperscript = require("./render/hyperscript")
+hyperscript.trust = require("./render/trust")
+hyperscript.fragment = require("./render/fragment")
 
-export const init = (selector, component) => {
-    const app = document.querySelector(selector);
-    patch(app, component.template);
-};
+var caps = function caps() { return hyperscript.apply(this, arguments) }
+caps.mount = require("./mount")
+caps.render = require("./render")
 
-export const render = (component) => {
-    console.log(component);
-    const root = document.querySelector("#app");
-    patch(root, component.template);
-}
+var root = document.body
+
+// Your code here
+
+caps.mount(root, {
+    view: function() {
+        return caps("h1", "Try me out")
+    }
+})
+
+var count = 0 
+
+caps.render(root, caps("h1", "Capsule - Solid UI Framework"));
 
 
-// Index.js 
-
-export const div = createElement("div");
-export const p = createElement("p");
-
-const firstName = "Marvin";
-const lastName = "Frachet";
-
-const hello = div`Hello ${firstName} ${lastName}`;
-const bye = div`Bye ${lastName} ${firstName}`;
-render(hello);
-render(bye);
-
+//caps.mount(root, Hello)
