@@ -1,4 +1,3 @@
-
 var hyperscript = require("./render/hyperscript")
 hyperscript.trust = require("./render/trust")
 hyperscript.fragment = require("./render/fragment")
@@ -6,20 +5,17 @@ hyperscript.fragment = require("./render/fragment")
 var caps = function caps() { return hyperscript.apply(this, arguments) }
 caps.mount = require("./mount")
 caps.render = require("./render")
+module.exports = caps
 
-var root = document.body
+const TextField = require("./component/TextField")
 
-// Your code here
-
-caps.mount(root, {
-    view: function() {
-        return caps("h1", "Try me out")
+// define your component
+var Example = {
+    view: function(vnode) {
+        return caps("div", "Hello")
     }
-})
+}
 
-var count = 0 
+// consume your component
 
-caps.render(root, caps("h1", "Capsule - Solid UI Framework"));
-
-
-//caps.mount(root, Hello)
+caps.render(document.body, caps(TextField))

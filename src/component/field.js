@@ -1,1 +1,0 @@
-var caps = require("capsule")
