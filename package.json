@@ -26,7 +26,8 @@
   "homepage": "https://github.com/brikkr/solid-ui#readme",
   "dependencies": {
     "@inrupt/solid-client": "^1.30.0",
-    "@inrupt/solid-client-authn-node": "^1.17.1"
+    "@inrupt/solid-client-authn-node": "^1.17.1",
+    "snabbdom": "^3.5.1"
   },
   "devDependencies": {
     "webpack": "^5.88.2",
