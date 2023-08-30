@@ -1,14 +1,12 @@
 var caps = require("../")
 
-class TextField {
-    constructor(vnode) {
-        this.kind = "class component"
-    }
-    view() {
-        return caps("div", `Hello from a ${this.kind}`)
-    }
-    oncreate() {
-        console.log(`A ${this.kind} was created`)
+var TextField = {
+    label: "",
+    oninit: function(vnode) {
+        this.label = vnode.attrs.label
+    },
+    view: function(vnode) {
+        return caps("div", this.label)
     }
 }
 

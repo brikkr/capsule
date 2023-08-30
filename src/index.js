@@ -1,3 +1,4 @@
+
 var hyperscript = require("./render/hyperscript")
 hyperscript.trust = require("./render/trust")
 hyperscript.fragment = require("./render/fragment")
@@ -7,15 +8,9 @@ caps.mount = require("./mount")
 caps.render = require("./render")
 module.exports = caps
 
+const LoginForm = require("./component/loginForm")
 const TextField = require("./component/TextField")
-
-// define your component
-var Example = {
-    view: function(vnode) {
-        return caps("div", "Hello")
-    }
-}
 
 // consume your component
 
-caps.render(document.body, caps(TextField))
+caps.render(document.body, caps(TextField, {label: "Name"}))
