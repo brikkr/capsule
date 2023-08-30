@@ -8,9 +8,8 @@ caps.mount = require("./mount")
 caps.render = require("./render")
 module.exports = caps
 
-const LoginForm = require("./component/loginForm")
-const TextField = require("./component/TextField")
+const IssuerLoginButton = require("./component/IssuerLoginButton")
 
 // consume your component
 
-caps.render(document.body, caps(TextField, {label: "Name"}))
+caps.render(document.body, caps(IssuerLoginButton, {name: "Inrupt", url:"https://login.inrupt.com"}))
