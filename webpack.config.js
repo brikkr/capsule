@@ -16,8 +16,15 @@ module.exports = {
       crypto : require.resolve("crypto-browserify"),
       querystring : require.resolve("querystring-es3"),
       stream: require.resolve("stream-browserify")
-      
     }, 
-  }
+  },
+  module: {
+    rules: [
+      {
+        test: /\.(css)$/,
+        use: ['style-loader', 'css-loader'],
+      },
+    ],
+  },
  
 };

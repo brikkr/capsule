@@ -2,7 +2,7 @@
 
 var Vnode = require("./vnode")
 var hyperscriptVnode = require("./hyperscriptVnode")
-var hasOwn = require("./hasOwn")
+var hasOwn = require("../util/hasOwn")
 
 var selectorParser = /(?:(^|#|\.)([^#\.\[\]]+))|(\[(.+?)(?:\s*=\s*("|'|)((?:\\["'\]]|.)*?)\5)?\])/g
 var selectorCache = {}
