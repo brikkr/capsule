@@ -11,6 +11,7 @@ caps.route = require("./route")
 module.exports = caps
 
 const IssuerLoginButton = require("./component/IssuerLoginButton")
+const LoginForm = require("./component/loginForm")
 
 
 require('./styles/style.css');
@@ -19,7 +20,7 @@ require('./styles/style.css');
 
 //caps.render(document.body, caps(IssuerLoginButton, {name: "Inrupt", url:"https://login.inrupt.com"}))
 
-caps.render(document.body, caps(IssuerLoginButton, {name: "Brikkr", url:"https://solid.brikkr.com"}))
+caps.render(document.body, caps(LoginForm))
 
 /*
 var count = 0

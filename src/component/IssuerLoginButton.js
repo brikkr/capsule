@@ -29,7 +29,7 @@ var IssuerLoginButton = {
         }
     },
     view: function(vnode) {
-        return caps("button", {onclick: () => clickedButton(vnode.attrs.url)}, this.issuerLoginName)
+        return caps("button.rounded", {onclick: () => clickedButton(vnode.attrs.url)}, this.issuerLoginName)
     }
 }
 

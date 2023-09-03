@@ -1,16 +1,16 @@
 var caps = require("../");
-const TextField = require("./TextField");
+const TextInput= require("./TextInput");
 
 
 const webID = {
     label: 'WebID',
-    value: '',
+    value: 'Test',
     error: ''
   }
 
 var LoginForm = {
     view: function(vnode) {
-        return caps(TextField, {label:"yahoo"})
+        return caps("form.inline", [caps(TextInput, webID),caps("button", "Connect")])
     }
 }
 
