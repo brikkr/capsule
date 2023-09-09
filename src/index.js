@@ -7,46 +7,30 @@ var caps = function caps() { return hyperscript.apply(this, arguments) }
 caps.mount = require("./mount")
 caps.render = require("./render")
 caps.route = require("./route")
-
 module.exports = caps
 
-const IssuerLoginButton = require("./component/IssuerLoginButton")
-const LoginForm = require("./component/loginForm")
 
+///////////////////////
+const { login, getDefaultSession } = require("@inrupt/solid-client-authn-browser");
 
 require('./styles/style.css');
 
-// consume your component
+var Login = require("./views/login");
+var Home = require("./views/home")
 
-//caps.render(document.body, caps(IssuerLoginButton, {name: "Inrupt", url:"https://login.inrupt.com"}))
-
-caps.render(document.body, caps(LoginForm))
-
-/*
-var count = 0
-
-var Hello = {
-    view: function() {
-        return caps("main", [
-            caps("h1", {
-                class: "title"
-            }, "My first app"),
-            caps("button", {
-                onclick: function() {count++}
-            }, count + " clicks"),
-        ])
-    }
-}
-
-var Splash = {
-    view: function() {
-        return caps(IssuerLoginButton, {name: "Inrupt", url:"https://login.inrupt.com"})
-    }
-}
-
-
-caps.route(document.body, "/login", {
-    "/login": Splash,
-    "/callback": Hello,
+caps.route(document.body, "/", {
+    "/": {
+        onmatch: async function() {
+            if (!getDefaultSession().info.isLoggedIn) {
+                caps.route.set("/login")
+            }else{
+                caps.route.set("/home")
+            }
+        }
+    },
+    "/login": Login,
+    "/home": Home
 })
-*/
+
+
+

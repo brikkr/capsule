@@ -28,6 +28,7 @@
     "@inrupt/solid-client": "^1.30.0",
     "@inrupt/solid-client-authn-browser": "^1.17.1",
     "@inrupt/solid-client-authn-node": "^1.17.1",
+    "@inrupt/vocab-solid": "^1.0.4",
     "assert": "^2.0.0",
     "crypto": "^1.0.1",
     "crypto-browserify": "^3.12.0",
