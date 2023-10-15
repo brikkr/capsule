@@ -1,4 +1,5 @@
-var caps = require("..")
+var caps = require("..");
+const { appName } = require("../settings");
 
 // Load Solid libraries
 const { login, handleIncomingRedirect } = require("@inrupt/solid-client-authn-browser")
@@ -12,8 +13,8 @@ SOLID
 } = require("@inrupt/vocab-solid");
 
 
-// Configure input attributes
-var LoginInput = {
+// Set component
+var WebIDLoginInput = {
     label: "",
     oninit: async function(vnode) {
         this.label = vnode.attrs.label
@@ -142,4 +143,4 @@ async function logged() {
 }
 
 
-module.exports = LoginInput
+module.exports = WebIDLoginInput

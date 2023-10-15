@@ -1,7 +1,7 @@
 var caps = require("..")
 
-const LoginButton = require("../components/IssuerButtonLogin")
-const LoginInput = require("../components/WebIDLogin")
+const LoginButton = require("../components/IssuerLoginButton")
+const WebIDLogin = require("../components/WebIDLoginInput")
 
 const webID = {
     label: 'WebID',
@@ -28,6 +28,6 @@ const brikkr = {
 
 module.exports = {
     view: function() {
-        return caps("div.container", caps("div.align-vertically", [caps(LoginInput, webID), caps("div.buttons", [caps(LoginButton, inrupt), caps(LoginButton, brikkr)])]))
+        return caps("div.login", caps("div.align-vertically", [caps(WebIDLogin, webID), caps("div.buttons", [caps(LoginButton, inrupt), caps(LoginButton, brikkr)])]))
     }
 }
