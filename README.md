@@ -5,6 +5,7 @@
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=CSS3&logoColor=FFF&style=flat-square)
 
 ![Work](https://img.shields.io/badge/work-in_progress-green)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 Capsule contains the tools you need to build a Solid Application.
 More specifically, the SDK includes:
