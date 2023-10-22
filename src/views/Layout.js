@@ -2,6 +2,11 @@ var caps = require("..")
 const { getDefaultSession } = require("@inrupt/solid-client-authn-browser")
 
 module.exports = {
+    onupdate:function(vnode) {
+        if (!getDefaultSession().info.isLoggedIn) {
+            caps.route.set("/login")
+        }
+    },
     view: function(vnode) {
         return caps("main", [
             caps("nav.top", [caps('.left', caps('.brand', 'Capsule Beta version')),caps('.right',[
