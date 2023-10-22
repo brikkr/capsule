@@ -13,3 +13,5 @@ More specifically, the SDK includes:
 * Plug-ins 🔌
 * Code examples 🤓
 * Documentation 📚
+
+Learn more about Capsule by reading Wiki available [here](https://github.com/brikkr/capsule/wiki).
