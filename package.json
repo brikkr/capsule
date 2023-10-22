@@ -1,7 +1,7 @@
 {
-  "name": "solid-ui",
+  "name": "@brikkr/capsule",
   "version": "1.0.0",
-  "description": "Solid UI by Brikkr",
+  "description": "JavaScript Solid SDK",
   "private": true,
   "main": "index.js",
   "scripts": {
@@ -10,10 +10,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/brikkr/solid-ui.git"
+    "url": "git+https://github.com/brikkr/capsule.git"
   },
   "keywords": [
     "solid",
+    "javascript",
     "pod",
     "user",
     "interface"
@@ -21,31 +22,14 @@
   "author": "Brikkr",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/brikkr/solid-ui/issues"
+    "url": "https://github.com/brikkr/capsule/issues"
   },
-  "homepage": "https://github.com/brikkr/solid-ui#readme",
+  "homepage": "https://github.com/brikkr/capsule#readme",
   "dependencies": {
     "@inrupt/solid-client": "^1.30.0",
     "@inrupt/solid-client-authn-browser": "^1.17.1",
     "@inrupt/solid-client-authn-node": "^1.17.1",
     "@inrupt/vocab-solid": "^1.0.4",
-    "assert": "^2.0.0",
-    "crypto": "^1.0.1",
-    "crypto-browserify": "^3.12.0",
-    "file-loader": "^6.2.0",
-    "https-browserify": "^1.0.0",
-    "querystring-es3": "^0.2.1",
-    "snabbdom": "^3.5.1",
-    "stream": "^0.0.2",
-    "stream-browserify": "^3.0.0",
-    "stream-http": "^3.2.0",
-    "url": "^0.11.1"
-  },
-  "devDependencies": {
-    "css-loader": "^6.8.1",
-    "style-loader": "^3.3.3",
-    "webpack": "^5.88.2",
-    "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.1"
+    "mithril": "^2.2.2"
   }
 }
