@@ -15,3 +15,6 @@ More specifically, the SDK includes:
 * Documentation 📚
 
 Learn more about Capsule by reading Wiki available [here](https://github.com/brikkr/capsule/wiki).
+
+## Installation
+Need to be implemented
