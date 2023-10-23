@@ -30,6 +30,12 @@
     "@inrupt/solid-client-authn-browser": "^1.17.1",
     "@inrupt/solid-client-authn-node": "^1.17.1",
     "@inrupt/vocab-solid": "^1.0.4",
+    "lodash": "^4.17.21",
     "mithril": "^2.2.2"
+  },
+  "devDependencies": {
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
   }
 }
