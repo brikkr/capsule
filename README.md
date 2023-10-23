@@ -3,8 +3,10 @@
 ![Javascript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=JavaScript&logoColor=000&style=flat-square)
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=HTML5&logoColor=FFF&style=flat-square)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=CSS3&logoColor=FFF&style=flat-square)
+![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=flat-square&logo=node.js&logoColor=white)
 
 ![Work](https://img.shields.io/badge/work-in_progress-green)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 Capsule contains the tools you need to build a Solid Application.
 More specifically, the SDK includes:
