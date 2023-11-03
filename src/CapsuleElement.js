@@ -4,17 +4,18 @@ import { RDF, SCHEMA_INRUPT } from "@inrupt/vocab-common-rdf"
 
 /**
  * @param {name} Name of the element.
- * @param {data} Data of the element.
  * @param {model} Model of the element.
+ * @param {data} Data of the element.
  */
 
 export class CapsuleElement {
 
     // Constructor
-    constructor(name) {
+    constructor(name, spec = null) {
         this.name = name
-        this.data = {}
+        this.spec = spec
         this.model = {}
+        this.data = {}
     }
 
     // Set model of element
@@ -106,7 +107,7 @@ export class CapsuleElement {
         return newSolidDataset
     }
 
-    save(url){
+    saveElement(url){
         const me = buildThing(createThing({ name: "user"}))
         .addUrl(RDF.type, SCHEMA_INRUPT.Person)
         .addStringNoLocale(SCHEMA_INRUPT.givenName, undefined)

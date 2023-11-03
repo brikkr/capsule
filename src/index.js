@@ -1,54 +1,44 @@
 import caps from "mithril";
 
 import { buildThing, createThing, createSolidDataset } from "@inrupt/solid-client";
-import { RDF, SCHEMA_INRUPT } from "@inrupt/vocab-common-rdf";
-
+import { RDF, FOAF, LDP, SCHEMA_INRUPT } from "@inrupt/vocab-common-rdf";
+import { SOLID } from "@inrupt/vocab-solid";
 import { CapsuleElement } from "./CapsuleElement";
 let solidDataset = createSolidDataset();
 
-let person = new CapsuleElement('Person');
+let profile = new CapsuleElement('Solid_WebID_Profile', 'https://solid.github.io/webid-profile/');
 
 const model = {
     type: {
         property : RDF.type,
         propertyType : "URL",
-        value: SCHEMA_INRUPT.Person,
+        value: FOAF.Agent,
     },  
-    firstname: {
-        property : SCHEMA_INRUPT.givenName,
-        propertyType : "StringNoLocale"
+    solidIssuer : {
+        property : SOLID.oidcIssuer,
+        propertyType : "URL",
     },
-    lastname :{
-        property: SCHEMA_INRUPT.familyName,
-        propertyType : "StringNoLocale"
+    inbox : {
+        property : LDP.inbox,
+        propertyType : "URL",
     },
-    available :{
-        property: SCHEMA_INRUPT.address,
-        propertyType : "Date"
-    }
+    storage : {
+        property : "http://www.w3.org/ns/pim/space#storage",
+        propertyType : "URL",
+    },
+    preferencesFile : {
+        property : "http://www.w3.org/ns/pim/space#preferencesFile",
+        propertyType : "URL",
+    },  
 }
-person.setModel(model)
 
-// person.saveSolidDataset(url)
-// person.loadSolidDataset(url)
+console.log(model)
+profile.setModel(model)
 
-
-person.setData('firstname',  new Date())
-person.setData('lastname', 'Plateel')
-person.setData('available', new Date())
-console.log(person.getData('firstname'))
+console.log(profile.spec)
 
 
 // Define structure of USER element
-
-const me = buildThing(createThing({ name: "user"}))
-  .addUrl(RDF.type, SCHEMA_INRUPT.Person)
-  .addStringNoLocale(SCHEMA_INRUPT.givenName, undefined)
-  .addStringNoLocale(SCHEMA_INRUPT.familyName, undefined)
-  .build();
-
-//console.log(solidDataset);
-
 
 
 // Get element user
