@@ -1,4 +1,7 @@
 import { CapsuleElement } from "../CapsuleElement";
+import { RDF, RDFS, FOAF, LDP, SCHEMA_INRUPT } from "@inrupt/vocab-common-rdf";
+import { SOLID } from "@inrupt/vocab-solid";
+
 
 const model = {
     type: {
@@ -21,11 +24,16 @@ const model = {
     preferencesFile : {
         property : "http://www.w3.org/ns/pim/space#preferencesFile",
         propertyType : "URL",
-    },  
+    },
+    seeAlso : {
+        property : RDFS.seeAlso,
+        propertyType : "URL",
+    },   
 }
 
-export class SolidWebIProfile extends CapsuleElement{
+export class SolidWebIDProfile extends CapsuleElement{
     constructor() {
+        super()
         this.name = "SolidWebIDProfile"
         this.spec = "https://solid.github.io/webid-profile/"
         this.setModel(model)

@@ -1,5 +1,5 @@
 import { handleIncomingRedirect, login, fetch, getDefaultSession } from '@inrupt/solid-client-authn-browser'
-import { getSolidDataset, saveSolidDatasetAt, createSolidDataset } from "@inrupt/solid-client"
+import { getSolidDataset, saveSolidDatasetAt, createSolidDataset, getThingAll, getThing, getUrl} from "@inrupt/solid-client"
 import { RDF, SCHEMA_INRUPT } from "@inrupt/vocab-common-rdf"
 
 /**
@@ -97,7 +97,7 @@ export class CapsuleElement {
                     break
                 default:
                   console.log(`Sorry, property type "${propertyInfo['propertyType']}" is unknown.`)
-              }
+            }
             this.data[propertyName] = value
         }
     }
@@ -115,7 +115,41 @@ export class CapsuleElement {
         .build()
     }
 
-    load(){
+    async load(url){
+        const dataset = await getSolidDataset(
+            url
+        );
+        const properties = this.getAllProperties();
+        const thing =  getThing(dataset, url)
+
+        for (const propertyName of properties) {
+            const propertyInfo = this.getProperty(propertyName)
+            let value = null
+            switch (propertyInfo['propertyType']) {
+                case 'Boolean':    
+                    break
+                case 'URL':
+                    value = getUrl(thing, propertyInfo['property']);
+                    break
+                case 'Date':
+                case 'Datetime':
+                    break
+                // Time type not implemented //
+                case 'StringWithLocale':
+                case 'StringNoLocale' :
+                case 'StringEnglish' :         
+                    break
+                default:
+                    
+            }
+            if (propertyInfo['value']){
+                this.data[propertyName] = propertyInfo['value']
+            }else{
+                this.data[propertyName] = value
+            }
+            
+
+        }
 
     }
 
