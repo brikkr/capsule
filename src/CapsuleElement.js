@@ -1,5 +1,5 @@
 import { handleIncomingRedirect, login, fetch, getDefaultSession } from '@inrupt/solid-client-authn-browser'
-import { getSolidDataset, saveSolidDatasetAt, createSolidDataset, getThingAll, getThing, getUrl} from "@inrupt/solid-client"
+import { getSolidDataset, saveSolidDatasetAt, createSolidDataset, getThingAll, getThing, getUrl, getUrlAll, getBoolean, getBooleanAll, getDate, getDateAll, getDatetime, getDatetimeAll, getStringNoLocale, getStringWithLocale, getStringWithLocaleAll, getStringNoLocaleAll, getStringEnglish, getStringEnglishAll, getInteger, getIntegerAll, getDecimal, getDecimalAll} from "@inrupt/solid-client"
 import { RDF, SCHEMA_INRUPT } from "@inrupt/vocab-common-rdf"
 
 /**
@@ -85,6 +85,21 @@ export class CapsuleElement {
                         return false
                     }
                     break
+                case 'Integer':
+                    if(!Number.isInteger(value)){
+                        console.log(`"${propertyName}" property value must be an integer.`)
+                        return false
+                    }
+                    break
+                case 'Decimal':
+                    if (typeof value === 'number' && !Number.isNaN(value) && !Number.isInteger(value)) {
+                        // Need some improvements...
+                        
+                    }else{
+                        console.log(`"${propertyName}" property value must be a decimal.`)
+                        return false;
+                    }
+                    break
                 // Time type not implemented //
                 case 'StringWithLocale':
                 case 'StringNoLocale' :
@@ -107,15 +122,105 @@ export class CapsuleElement {
         return newSolidDataset
     }
 
-    saveElement(url){
-        const me = buildThing(createThing({ name: "user"}))
-        .addUrl(RDF.type, SCHEMA_INRUPT.Person)
-        .addStringNoLocale(SCHEMA_INRUPT.givenName, undefined)
-        .addStringNoLocale(SCHEMA_INRUPT.familyName, undefined)
-        .build()
+    async load(url, fetch = null){
+        
+        const dataset = await getSolidDataset(
+            url
+        );
+        
+        if(fetch){
+            const dataset = await getSolidDataset(
+                url,
+                { fetch : fetch}
+            );
+        }
+
+        const properties = this.getAllProperties();
+        const thing =  getThing(dataset, url)
+
+        for (const propertyName of properties) {
+            const propertyInfo = this.getProperty(propertyName)
+            if(Array.isArray(propertyInfo['property'])){
+                propertyInfo['property'].forEach(element => {
+                    this.getSolidData(propertyName, element, thing)
+                });
+            }else{
+                this.getSolidData(propertyName, propertyInfo['property'], thing)
+            }
+        }
     }
 
-    async load(url){
+    getSolidData(propertyName, property, thing){
+        const propertyInfo = this.getProperty(propertyName)
+        let value = null
+        switch (propertyInfo['propertyType']) {
+            case 'Boolean':    
+                if(propertyInfo['unique'])
+                value = getBoolean(thing, property)
+                else
+                value = getBooleanAll(thing, property)
+                break
+            case 'URL':
+                if(propertyInfo['unique'])
+                value = getUrl(thing, property)
+                else
+                value = getUrlAll(thing, property)
+                break
+            case 'Date':
+                if(propertyInfo['unique'])
+                value = getDate(thing, property)
+                else
+                value = getDateAll(thing, property)
+                break
+            case 'Datetime':
+                if(propertyInfo['unique'])
+                value = getDatetime(thing, property)
+                else
+                value = getDatetimeAll(thing, property)
+                break
+            case 'Integer':
+                if(propertyInfo['unique'])
+                value = getInteger(thing, property)
+                else
+                value = getIntegerAll(thing, property)
+                break
+            case 'Decimal':
+                if(propertyInfo['unique'])
+                value = getDecimal(thing, property)
+                else
+                value = getDecimalAll(thing, property)
+                break
+            case 'StringWithLocale':
+                if(propertyInfo['unique'])
+                value = getStringWithLocale(thing, property)
+                else
+                value = getStringWithLocaleAll(thing, property)
+                break
+            case 'StringNoLocale' :
+                if(propertyInfo['unique'])
+                value = getStringNoLocale(thing, property)
+                else
+                value = getStringNoLocaleAll(thing, property)
+                break
+            case 'StringEnglish' :         
+                if(propertyInfo['unique'])
+                value = getStringEnglish(thing, property)
+                else
+                value = getStringEnglishAll(thing, property)
+                break
+            default:  
+        }
+
+        // Check if element has pre save value
+        if (propertyInfo['defaultValue']){
+            this.data[propertyName] = propertyInfo['defaultValue']
+        }else{
+            this.data[propertyName] = value
+        }
+    }
+
+
+    async save(url){
         const dataset = await getSolidDataset(
             url
         );
@@ -124,50 +229,13 @@ export class CapsuleElement {
 
         for (const propertyName of properties) {
             const propertyInfo = this.getProperty(propertyName)
-            let value = null
-            switch (propertyInfo['propertyType']) {
-                case 'Boolean':    
-                    break
-                case 'URL':
-                    value = getUrl(thing, propertyInfo['property']);
-                    break
-                case 'Date':
-                case 'Datetime':
-                    break
-                // Time type not implemented //
-                case 'StringWithLocale':
-                case 'StringNoLocale' :
-                case 'StringEnglish' :         
-                    break
-                default:
-                    
-            }
-            if (propertyInfo['value']){
-                this.data[propertyName] = propertyInfo['value']
+            if(Array.isArray(propertyInfo['property'])){
+                propertyInfo['property'].forEach(element => {
+                    this.getSolidData(propertyName, element, thing)
+                });
             }else{
-                this.data[propertyName] = value
+                this.getSolidData(propertyName, propertyInfo['property'], thing)
             }
-            
-
         }
-
     }
-
-    remove(){
-
-    }
-
-    // 
-    async loadFrom(url){
-        // Check access rules (public, private,...)
-        
-
-        // Fetch Solid Dataset from URL
-
-        // Return element data
-    }
-
-   
-
-    
 }

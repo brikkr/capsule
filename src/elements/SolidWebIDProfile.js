@@ -1,5 +1,5 @@
 import { CapsuleElement } from "../CapsuleElement";
-import { RDF, RDFS, FOAF, LDP, SCHEMA_INRUPT } from "@inrupt/vocab-common-rdf";
+import { RDF, RDFS, FOAF, LDP, OWL, SCHEMA_INRUPT } from "@inrupt/vocab-common-rdf";
 import { SOLID } from "@inrupt/vocab-solid";
 
 
@@ -7,15 +7,17 @@ const model = {
     type: {
         property : RDF.type,
         propertyType : "URL",
-        value: FOAF.Agent,
+        defaultValue: FOAF.Agent,
     },  
     solidIssuer : {
         property : SOLID.oidcIssuer,
         propertyType : "URL",
+        unique: true
     },
     inbox : {
         property : LDP.inbox,
         propertyType : "URL",
+        unique: true
     },
     storage : {
         property : "http://www.w3.org/ns/pim/space#storage",
@@ -24,11 +26,12 @@ const model = {
     preferencesFile : {
         property : "http://www.w3.org/ns/pim/space#preferencesFile",
         propertyType : "URL",
+        unique: true
     },
     seeAlso : {
-        property : RDFS.seeAlso,
+        property : [RDFS.seeAlso,OWL.sameAs, FOAF.isPrimaryTopicOf],
         propertyType : "URL",
-    },   
+    },
 }
 
 export class SolidWebIDProfile extends CapsuleElement{
