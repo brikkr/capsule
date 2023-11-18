@@ -5,31 +5,33 @@ import { SOLID } from "@inrupt/vocab-solid";
 
 const model = {
     type: {
-        property : RDF.type,
+        propertyUrl : RDF.type,
         propertyType : "URL",
         defaultValue: FOAF.Agent,
+        readOnly: true
     },  
     solidIssuer : {
-        property : SOLID.oidcIssuer,
+        propertyUrl : SOLID.oidcIssuer,
         propertyType : "URL",
-        unique: true
+        unique: true,
+        readOnly: true
     },
     inbox : {
-        property : LDP.inbox,
+        propertyUrl : LDP.inbox,
         propertyType : "URL",
         unique: true
     },
     storage : {
-        property : "http://www.w3.org/ns/pim/space#storage",
+        propertyUrl : "http://www.w3.org/ns/pim/space#storage",
         propertyType : "URL",
     },
     preferencesFile : {
-        property : "http://www.w3.org/ns/pim/space#preferencesFile",
+        propertyUrl : "http://www.w3.org/ns/pim/space#preferencesFile",
         propertyType : "URL",
         unique: true
     },
     seeAlso : {
-        property : [RDFS.seeAlso,OWL.sameAs, FOAF.isPrimaryTopicOf],
+        propertyUrl : [RDFS.seeAlso, OWL.sameAs, FOAF.isPrimaryTopicOf],
         propertyType : "URL",
     },
 }
