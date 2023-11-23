@@ -15,7 +15,6 @@ let bookmark = new Bookmark()
 const webID = "https://solid.brikkr.com/Vincent-Plateel/profile/card#me"
 const container = "https://solid.brikkr.com/Vincent-Plateel/bookmarks/public"
 
-bookmark.load(`${container}#book2`)
 
 async function handleRedirectAfterLogin() {
     await handleIncomingRedirect(); // no-op if not part of login redirect
@@ -23,6 +22,7 @@ async function handleRedirectAfterLogin() {
     if (session.info.isLoggedIn) {
         console.log("Logged:"+session.info.webId)
         let loadedBookmark = await bookmark.load(`${container}#book2`)
+       // bookmark.checkAgentAccess(container, webID)
         if(loadedBookmark == null){
             bookmark.setData('label','test')
             let createdBookmark = bookmark.create(container,`book2`)
@@ -36,6 +36,8 @@ async function handleRedirectAfterLogin() {
   
 
 handleRedirectAfterLogin();
+
+//bookmark.load(`${container}#book2`)
 
 
 caps.render(document.body, caps(LoginForm));

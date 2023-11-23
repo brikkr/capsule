@@ -1,12 +1,11 @@
 import { handleIncomingRedirect, login, fetch, getDefaultSession } from '@inrupt/solid-client-authn-browser'
 import { universalAccess, getSolidDataset, saveSolidDatasetAt, createSolidDataset, getThingAll,addStringNoLocale, addStringWithLocale, addStringEnglish, getThing, getUrl, getUrlAll, getBoolean, getBooleanAll, getDate, getDateAll, getDatetime, getDatetimeAll, getStringNoLocale, getStringWithLocale, getStringWithLocaleAll, getStringNoLocaleAll, getStringEnglish, getStringEnglishAll, getInteger, getIntegerAll, getDecimal, getDecimalAll, buildThing, setThing, addUrl, createThing, setUrl, setStringNoLocale} from "@inrupt/solid-client"
 import { RDF, SCHEMA_INRUPT } from "@inrupt/vocab-common-rdf"
-import { forEach } from 'lodash'
 
 /**
  * @param {name} Name of the element.
- * @param {model} Model representation of the element.
- * @param {data} Data of the element.
+ * @param {dataModel} Data model representation of the element.
+ * @param {dataValues} Data values of the element.
  * @param {thing} Thing of the element.
  * @param {container} Container of the element.
  */
@@ -14,48 +13,56 @@ import { forEach } from 'lodash'
 export class CapsuleElement {
 
     //
-    // Constructor
+    // Initialization
     //
-    constructor(name, spec = null) {
+    constructor(name) {
         this.name = name
-        this.spec = spec
-        this.model = {}
-        this.data = {}
+        this.resource = null
+        this.properties = {}
+        this.values = {}
         this.thing = null
     }
     
     //
-    // Set model of element
+    // Define all properties with predicates
     //
-    setModel(model) {
-        for (const [propertyName, details] of Object.entries(model)) {
-            //Check if model is valid
-            if (!details.hasOwnProperty('propertyUrl')){
-                throw new Error(`${this.name} model is invalid, any property attribute have found for "${propertyName}".`)
-            }
-            if (!details.hasOwnProperty('propertyType')){
-                throw new Error(`${this.name} model is invalid, any property type have found for "${propertyName}".`)
+    setProperties(properties) {
+        for (const [property, predicate] of Object.entries(properties)) {
+            if (!predicate.hasOwnProperty('uri') || !property.hasOwnProperty('datatype')) {
+                throw new Error(`${predicate} predicate is invalid.`)
             }
         }
-        this.model = model
+        this.properties = properties
     }
 
     //
-    // Get all properties of element
+    // Return available properties
     //
-    getAllProperties(){
+    getProperties(){
         let properties = []
-        for (const [propertyName] of Object.entries(this.model)) {
-            properties.push(propertyName)
+        for (const [property] of Object.entries(this.properties)) {
+            properties.push(property)
         }
         return properties
     }
 
     //
-    // Get a specific property of element
+    // Check if property exists
     //
-    getProperty(propertyName){
-        return this.model[propertyName]
+    checkIfPropertyExists(property){
+        let properties  = this.getProperties()
+        if(properties.includes(property)){
+            return true
+        }else{
+            return false
+        }
+    }
+
+    //
+    // Return predicate from property
+    //
+    getPredicate(property){
+        return this.properties[property]
     }
 
     //
@@ -76,8 +83,7 @@ export class CapsuleElement {
     // Add data of element
     //
     setData(propertyName, value, locale){
-        // Check if local code is correct
-        if(locale){
+        if(locale){  // Check if local code is correct
             try {
                 Intl.getCanonicalLocales(locale);
             } catch (err) {
@@ -151,41 +157,52 @@ export class CapsuleElement {
             this.data[propertyName] = value
         }
     }
+
     //
-    // Create element
+    // Create new element
     //
     async create(resourceUrl, name){
-        const session = getDefaultSession();
+        const session = getDefaultSession()
+        let dataset
         try {
-            let dataset = createSolidDataset();
-            this.thing = createThing({ name: name });
-      
-            const properties = this.getAllProperties();
-            for (const propertyName of properties) {
-                const propertyInfo = this.getProperty(propertyName)
-                if(Array.isArray(propertyInfo['propertyUrl'])){
-                    propertyInfo['propertyUrl'].forEach(element => {
-                        this.addSolidData(propertyName, element)
-                    });
-                }else{
-                    this.addSolidData(propertyName, propertyInfo['propertyUrl'])
-                }
-            }
-
-            console.log(this.thing)
-            dataset = setThing(dataset, this.thing)
-
-            const savedSolidDataset = await saveSolidDatasetAt(
-                resourceUrl,
-                dataset,
+            dataset = await getSolidDataset(
+                resourceUrl, 
                 { ...(session.info.isLoggedIn && {fetch: fetch}) }
-              );
+              );    
         } catch (error) {
             if (typeof error.statusCode === "number" && error.statusCode === 401) {
-                console.error("Not authorized")
+                console.error("Your are not authorized")
                 return false
             }
+            if (typeof error.statusCode === "number" && error.statusCode === 404) {
+                dataset = createSolidDataset();
+            }
         } 
+
+        this.thing = createThing({ name: name });
+
+        const properties = this.getAllProperties();
+        for (const propertyName of properties) {
+            const propertyInfo = this.getProperty(propertyName)
+            if(Array.isArray(propertyInfo['propertyUrl'])){
+                propertyInfo['propertyUrl'].forEach(element => {
+                    this.addSolidData(propertyName, element)
+                });
+            }else{
+                this.addSolidData(propertyName, propertyInfo['propertyUrl'])
+            }
+        }
+
+        dataset = setThing(dataset, this.thing);
+        console.log(dataset)
+
+        const savedSolidDataset = await saveSolidDatasetAt(
+            resourceUrl,
+            dataset,
+            { ...(session.info.isLoggedIn && {fetch: fetch}) }
+        );
+
+
     }
 
     //
@@ -215,18 +232,18 @@ export class CapsuleElement {
             }
         } catch (error) {
             if (typeof error.statusCode === "number" && error.statusCode === 404) {
-                console.error("Not found")
+                console.error("Ressource not found")
                 return null
             }
             if (typeof error.statusCode === "number" && error.statusCode === 401) {
-                console.error("Not authorized")
+                console.error("Not authorized to load this resource.")
                 return false
             }
         } 
     }
     
     //
-    // Check public acces
+    // Check public access
     //
     checkPublicAccess(resourceUrl){
         universalAccess.getPublicAccess(
@@ -240,6 +257,24 @@ export class CapsuleElement {
             }
           });
     }
+
+    //
+    // Check agent access
+    //
+    checkAgentAccess(resourceUrl, webId){
+        universalAccess.getAgentAccess(
+            resourceUrl,      
+            webId,   // agent
+            { fetch: fetch }                      // fetch function from authenticated session
+          ).then((returnedAccess) => {
+            if (returnedAccess === null) {
+                console.log("Could not load access details for this Resource.");
+              } else {
+                console.log("Returned Agent Access:: ", JSON.stringify(returnedAccess));
+              }
+          });
+    }
+
     //
     // Extract data from Solid dataset
     //
@@ -350,7 +385,6 @@ export class CapsuleElement {
                 const dataset = createSolidDataset();
                 const properties = this.getAllProperties();
                
-        
                 for (const propertyName of properties) {
                     const propertyInfo = this.getProperty(propertyName)
                     if(Array.isArray(propertyInfo['propertyUrl'])){
@@ -361,9 +395,12 @@ export class CapsuleElement {
                         this.addSolidData(propertyName, propertyInfo['propertyUrl'])
                     }
                 }
+
+                console.log("I must")
+
                 try{
                     const savedSolidDataset = await saveSolidDatasetAt(
-                        ressourceUrl,
+                        resourceUrl+'#'+name,
                         dataset,
                         { ...(session.info.isLoggedIn && {fetch: fetch}) }
                     );
