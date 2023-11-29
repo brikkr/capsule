@@ -1,13 +1,10 @@
-import { handleIncomingRedirect, login, fetch, getDefaultSession } from '@inrupt/solid-client-authn-browser'
-import { universalAccess, getSolidDataset, saveSolidDatasetAt, createSolidDataset, getThingAll,addStringNoLocale, addStringWithLocale, addStringEnglish, getThing, getUrl, getUrlAll, getBoolean, getBooleanAll, getDate, getDateAll, getDatetime, getDatetimeAll, getStringNoLocale, getStringWithLocale, getStringWithLocaleAll, getStringNoLocaleAll, getStringEnglish, getStringEnglishAll, getInteger, getIntegerAll, getDecimal, getDecimalAll, buildThing, setThing, addUrl, createThing, setUrl, setStringNoLocale} from "@inrupt/solid-client"
-import { RDF, SCHEMA_INRUPT } from "@inrupt/vocab-common-rdf"
+import { fetch, getDefaultSession } from '@inrupt/solid-client-authn-browser'
+import { getSolidDataset, saveSolidDatasetAt, createSolidDataset, addStringNoLocale, addStringWithLocale, getThing, getUrl, getUrlAll, getBoolean, getBooleanAll, getDate, getDateAll, getDatetime, getDatetimeAll, getStringNoLocale, getStringWithLocale, getStringWithLocaleAll, getStringNoLocaleAll, getStringEnglish, getStringEnglishAll, getInteger, getIntegerAll, getDecimal, getDecimalAll, buildThing, setThing, addUrl, createThing, setUrl, setStringNoLocale, setBoolean, setDate, setDatetime, setInteger, setDecimal, setStringWithLocale, addBoolean, addDate, addDatetime, addDecimal, addInteger} from "@inrupt/solid-client"
 
 /**
- * @param {name} Name of the element.
- * @param {dataModel} Data model representation of the element.
- * @param {dataValues} Data values of the element.
- * @param {thing} Thing of the element.
- * @param {container} Container of the element.
+ * @param {properties} Data model representation of the element.
+ * @param {thingName} Thing name of the element.
+ * @param {thing} Solid Thing.
  */
 
 export class CapsuleElement {
@@ -15,28 +12,35 @@ export class CapsuleElement {
     //
     // Initialization
     //
-    constructor(name) {
-        this.name = name
-        this.resource = null
-        this.properties = {}
-        this.values = {}
-        this.thing = null
-    }
-    
-    //
-    // Define all properties with predicates
-    //
-    setProperties(properties) {
-        for (const [property, predicate] of Object.entries(properties)) {
-            if (!predicate.hasOwnProperty('uri') || !property.hasOwnProperty('datatype')) {
-                throw new Error(`${predicate} predicate is invalid.`)
-            }
-        }
-        this.properties = properties
+    constructor(properties) {
+        this.properties = this.#setProperties(properties)
+        this.solidDatasetUrl = null
+        this.solidDataset = createSolidDataset()
+        this.thingName = Date.now() // ==> NEED SOME IMPROVEMENTS
+        this.thing = createThing({ name: this.thingName })
     }
 
     //
-    // Return available properties
+    // Define properties with predicates of element
+    //
+    #setProperties(properties) {
+        for (const [property, predicate] of Object.entries(properties)) {
+            if (!predicate.hasOwnProperty('uri') || !predicate.hasOwnProperty('datatype')) {
+                throw new Error(`The ${property}'s property definition is not valid.`)
+            }
+        }
+        return properties
+    }
+
+    //
+    // Return predicate from property
+    //
+    #getPredicate(property){
+        return this.properties[property]
+    }
+
+    //
+    // Return the list of properties
     //
     getProperties(){
         let properties = []
@@ -47,9 +51,112 @@ export class CapsuleElement {
     }
 
     //
+    // Fetch thing in SolidDataset
+    //
+    async fetch(thingUrl){
+        const dataset = await this.loadSolidDatasetAt(thingUrl)
+        if(dataset){
+            const thing = getThing(this.solidDataset, thingUrl)
+            if(thing)
+                this.thing = thing
+        }
+    }
+
+    //
+    // Update thing in SolidDataset
+    //
+    async update(){
+        const session = getDefaultSession();
+        try {
+            this.solidDataset = setThing(this.solidDataset, this.thing)
+            await saveSolidDatasetAt(
+              this.solidDatasetUrl,
+              this.solidDataset,
+              { ...(session.info.isLoggedIn && {fetch: fetch}) }
+            );
+            return true
+        } catch (error) {
+            if (typeof error.statusCode === "number" && error.statusCode === 404) {
+                console.error("Ressource not found")
+                return null
+            }
+            if (typeof error.statusCode === "number" && error.statusCode === 401) {
+                console.error("Not authorized to append this dataset.")
+                return false
+            }
+        } 
+    }
+
+    //
+    // Create new thing in SolidDataset
+    //
+    async create(solidDatasetUrl){
+        if(!solidDatasetUrl){
+            console.log('A SolidDataset URL is required.')
+            return false
+        }
+        try {
+            const session = getDefaultSession();
+            await this.loadSolidDatasetAt(solidDatasetUrl)
+            this.setDefaultValues()
+            this.solidDataset = setThing(this.solidDataset, this.thing)
+            await saveSolidDatasetAt(
+              solidDatasetUrl,
+              this.solidDataset,
+              { ...(session.info.isLoggedIn && {fetch: fetch}) }
+            );
+            return true
+        } catch (error) {
+            console.log(error)
+            if (typeof error.statusCode === "number" && error.statusCode === 401) {
+                console.error("Not authorized to append/write in SolidDataset.")
+                return false
+            }
+        } 
+    }
+
+    
+    //
+    // Load SolidDataset at specific url
+    //
+    async loadSolidDatasetAt(url){
+        const session = getDefaultSession();
+        try {
+            this.solidDataset = await getSolidDataset(
+              url, 
+              { ...(session.info.isLoggedIn && {fetch: fetch}) }
+            );
+            this.solidDatasetUrl = url
+            return true
+        } catch (error) {
+            if (typeof error.statusCode === "number" && error.statusCode === 404) {
+                this.solidDataset  =  createSolidDataset()
+                this.solidDatasetUrl = url
+                return true
+            }
+            if (typeof error.statusCode === "number" && error.statusCode === 401) {
+                console.error("Not authorized to read this dataset.")
+                return false
+            }
+        } 
+    }
+
+
+    //
+    // Return value for a specific property
+    //
+    getValue(property){
+        if (this.#checkIfPropertyExists(property)){
+            return this.getValueFromThing(property)
+        }else{
+            return false
+        }
+    }
+
+    //
     // Check if property exists
     //
-    checkIfPropertyExists(property){
+    #checkIfPropertyExists(property){
         let properties  = this.getProperties()
         if(properties.includes(property)){
             return true
@@ -59,454 +166,231 @@ export class CapsuleElement {
     }
 
     //
-    // Return predicate from property
+    // Set a property value
     //
-    getPredicate(property){
-        return this.properties[property]
-    }
-
-    //
-    // Get all data of element
-    //
-    getAllData(){
-        return this.data
-    }
-
-    //
-    // Get a specific data of element
-    //
-    getData(propertyName){
-        return this.data[propertyName]
-    }
-
-    //
-    // Add data of element
-    //
-    setData(propertyName, value, locale){
-        if(locale){  // Check if local code is correct
-            try {
-                Intl.getCanonicalLocales(locale);
-            } catch (err) {
-                console.log(err.toString());
-            }
-        }
-        //Check if propertyName exists
-        if (!this.model.hasOwnProperty(propertyName)){
-            throw new Error(`The property "${propertyName}" doesn\'t exist in ${this.name} element.`)
+    set(property, value, locale){
+        if (this.#checkIfPropertyExists(property) ){
+            this.#addValueToThing(property, value, locale)
         }else{
-            // Check if propertyType is correct
-            const propertyInfo = this.getProperty(propertyName)
-            switch (propertyInfo['propertyType']) {
-                case 'Boolean':
-                    if (typeof value != "boolean") {
-                        console.log(`"${propertyName}" property value must be a boolean.`)
-                        return false
-                    }
-                    break
-                case 'URL':
-                    try {
-                        new URL(value)
-                    } catch (err) {
-                        console.log(`"${propertyName}" property value must be an URL.`)
-                        return false
-                    }
-                    break
-                case 'Date':
-                case 'Datetime':
-                    if (value instanceof Date && !isNaN(value)) {
-                        
-                    }else{
-                        console.log(`"${propertyName}" property value must be a valid Date.`)
-                        return false
-                    }
-                    break
-                case 'Integer':
-                    if(!Number.isInteger(value)){
-                        console.log(`"${propertyName}" property value must be an integer.`)
-                        return false
-                    }
-                    break
-                case 'Decimal':
-                    if (typeof value === 'number' && !Number.isNaN(value) && !Number.isInteger(value)) {
-                        // Need some improvements...
-                        
-                    }else{
-                        console.log(`"${propertyName}" property value must be a decimal.`)
-                        return false;
-                    }
-                    break
-                case 'StringWithLocale':
-                    if (typeof value != "string") {
-                        console.log(`"${propertyName}" property value must be a string.`)
-                        return false
-                    }
-                    if (!locale) {
-                        console.log(`"${propertyName}" requires local tag.`)
-                        return false
-                    }
-                case 'StringNoLocale' :
-                case 'StringEnglish' :         
-                    if (typeof value != "string") {
-                        console.log(`"${propertyName}" property value must be a string.`)
-                        return false
-                    }
-                    break
-                default:
-                  console.log(`Sorry, property type "${propertyInfo['propertyType']}" is unknown.`)
-            }
-            this.data[propertyName] = value
+            return false
         }
     }
 
     //
-    // Create new element
+    // Set default values
     //
-    async create(resourceUrl, name){
-        const session = getDefaultSession()
-        let dataset
-        try {
-            dataset = await getSolidDataset(
-                resourceUrl, 
-                { ...(session.info.isLoggedIn && {fetch: fetch}) }
-              );    
-        } catch (error) {
-            if (typeof error.statusCode === "number" && error.statusCode === 401) {
-                console.error("Your are not authorized")
-                return false
-            }
-            if (typeof error.statusCode === "number" && error.statusCode === 404) {
-                dataset = createSolidDataset();
-            }
-        } 
-
-        this.thing = createThing({ name: name });
-
-        const properties = this.getAllProperties();
-        for (const propertyName of properties) {
-            const propertyInfo = this.getProperty(propertyName)
-            if(Array.isArray(propertyInfo['propertyUrl'])){
-                propertyInfo['propertyUrl'].forEach(element => {
-                    this.addSolidData(propertyName, element)
-                });
-            }else{
-                this.addSolidData(propertyName, propertyInfo['propertyUrl'])
+    setDefaultValues(){
+        for (const [property] of Object.entries(this.properties)) {
+            const predicate = this.#getPredicate(property)
+            if(predicate['default']){
+                this.set(property, predicate['default'])
             }
         }
-
-        dataset = setThing(dataset, this.thing);
-        console.log(dataset)
-
-        const savedSolidDataset = await saveSolidDatasetAt(
-            resourceUrl,
-            dataset,
-            { ...(session.info.isLoggedIn && {fetch: fetch}) }
-        );
-
-
     }
 
     //
-    // Load data from ressource url
+    // Check if value is valid
     //
-    async load(resourceUrl){
-        const session = getDefaultSession();
-        try {
-            const dataset = await getSolidDataset(
-              resourceUrl, 
-              { ...(session.info.isLoggedIn && {fetch: fetch}) }
-            );
-            // Get thing (= dataset) from ressource url
-            this.thing =  getThing(dataset, resourceUrl)
-            // Get all model properties
-            const properties = this.getAllProperties();
-            for (const propertyName of properties) {
-                const property = this.getProperty(propertyName)
-                // Check if property has multi URLs
-                if(Array.isArray(property['propertyUrl'])){
-                    property['propertyUrl'].forEach(url => {
-                        this.getSolidData(propertyName, url)
-                    });
-                }else{
-                    this.getSolidData(propertyName, property['propertyUrl'])
+    #checkIfValueIsValid(property, value, locale){
+        const predicate = this.#getPredicate(property)
+        switch (predicate['datatype']) {
+            case 'Boolean':
+                if (typeof value != "boolean") {
+                    console.log(`"${property}" property value must be a boolean.`)
+                    return false
                 }
-            }
-        } catch (error) {
-            if (typeof error.statusCode === "number" && error.statusCode === 404) {
-                console.error("Ressource not found")
-                return null
-            }
-            if (typeof error.statusCode === "number" && error.statusCode === 401) {
-                console.error("Not authorized to load this resource.")
-                return false
-            }
-        } 
-    }
-    
-    //
-    // Check public access
-    //
-    checkPublicAccess(resourceUrl){
-        universalAccess.getPublicAccess(
-            resourceUrl,   // Resource
-            { fetch: fetch }                  // fetch function from authenticated session
-          ).then((returnedAccess) => {
-            if (returnedAccess === null) {
-              console.log("Could not load access details for this Resource.");
-            } else {
-              console.log("Returned Public Access:: ", JSON.stringify(returnedAccess));
-            }
-          });
-    }
-
-    //
-    // Check agent access
-    //
-    checkAgentAccess(resourceUrl, webId){
-        universalAccess.getAgentAccess(
-            resourceUrl,      
-            webId,   // agent
-            { fetch: fetch }                      // fetch function from authenticated session
-          ).then((returnedAccess) => {
-            if (returnedAccess === null) {
-                console.log("Could not load access details for this Resource.");
-              } else {
-                console.log("Returned Agent Access:: ", JSON.stringify(returnedAccess));
-              }
-          });
-    }
-
-    //
-    // Extract data from Solid dataset
-    //
-    getSolidData(propertyName, propertyUrl){
-        const propertyInfo = this.getProperty(propertyName)
-        let value = null
-        switch (propertyInfo['propertyType']) {
-            case 'Boolean':    
-                if(propertyInfo['unique'])
-                value = getBoolean(this.thing, propertyUrl)
-                else
-                value = getBooleanAll(this.thing, propertyUrl)
                 break
             case 'URL':
-                if(propertyInfo['unique'])
-                value = getUrl(this.thing, propertyUrl)
-                else
-                value = getUrlAll(this.thing, propertyUrl)
+                try {
+                    new URL(value)
+                } catch (err) {
+                    console.log(`"${property}" property value must be an URL.`)
+                    return false
+                }
                 break
             case 'Date':
-                if(propertyInfo['unique'])
-                value = getDate(this.thing, propertyUrl)
-                else
-                value = getDateAll(this.thing, propertyUrl)
-                break
             case 'Datetime':
-                if(propertyInfo['unique'])
-                value = getDatetime(this.thing, propertyUrl)
-                else
-                value = getDatetimeAll(this.thing, propertyUrl)
+                if (value instanceof Date && !isNaN(value)) {
+                    
+                }else{
+                    console.log(`"${property}" property value must be a valid Date.`)
+                    return false
+                }
                 break
             case 'Integer':
-                if(propertyInfo['unique'])
-                value = getInteger(this.thing, propertyUrl)
-                else
-                value = getIntegerAll(this.thing, propertyUrl)
+                if(!Number.isInteger(value)){
+                    console.log(`"${property}" property value must be an integer.`)
+                    return false
+                }
                 break
             case 'Decimal':
-                if(propertyInfo['unique'])
-                value = getDecimal(this.thing, propertyUrl)
-                else
-                value = getDecimalAll(this.thing, propertyUrl)
+                if (typeof value === 'number' && !Number.isNaN(value) && !Number.isInteger(value)) {
+                    // Need some improvements...
+                }else{
+                    console.log(`"${property}" property value must be a decimal.`)
+                    return false;
+                }
                 break
             case 'StringWithLocale':
-                if(propertyInfo['unique'])
-                value = getStringWithLocale(this.thing, propertyUrl)
-                else
-                value = getStringWithLocaleAll(this.thing, propertyUrl)
-                break
-            case 'StringNoLocale' :
-                if(propertyInfo['unique'])
-                value = getStringNoLocale(this.thing, propertyUrl)
-                else
-                value = getStringNoLocaleAll(this.thing, propertyUrl)
-                break
-            case 'StringEnglish' :         
-                if(propertyInfo['unique'])
-                value = getStringEnglish(this.thing, propertyUrl)
-                else
-                value = getStringEnglishAll(this.thing, propertyUrl)
-                break
-            default:  
-        }
-        this.data[propertyName] = value
-    }
-
-    //
-    // Save data to ressource 
-    //
-    async save(resourceUrl, name){
-        const session = getDefaultSession();
-        try {
-            const dataset = await getSolidDataset(
-              resourceUrl, 
-              { ...(session.info.isLoggedIn && {fetch: fetch}) }
-            );
-            
-            this.thing = getThing(dataset,  `${resourceUrl}#${name}`)
-
-            const properties = this.getAllProperties();
-            for (const propertyName of properties) {
-                const propertyInfo = this.getProperty(propertyName)
-                if(Array.isArray(propertyInfo['propertyUrl'])){
-                    propertyInfo['propertyUrl'].forEach(element => {
-                        this.setSolidData(propertyName, element)
-                    });
+                if(locale){  // Check if local code is correct
+                    try {
+                        Intl.getCanonicalLocales(locale);
+                    } catch (err) {
+                        console.log(err.toString());
+                        return false
+                    }
                 }else{
-                    this.setSolidData(propertyName, propertyInfo['propertyUrl'])
+                    console.log(`"${property}" requires local tag.`)
+                    return false
                 }
-            }
-
-            console.log(this.thing)
-
-            dataset = setThing(dataset, this.thing)
-
-            try{
-                const savedSolidDataset = await saveSolidDatasetAt(
-                    resourceUrl+'#'+name,
-                    dataset,
-                    { ...(session.info.isLoggedIn && {fetch: fetch}) }
-                );
-            }catch(error){
-                console.error('Oups:'+error.message);
-            }
-            
-        }catch(error){
-            if (typeof error.statusCode === "number" && error.statusCode === 404) {
-                const dataset = createSolidDataset();
-                const properties = this.getAllProperties();
-               
-                for (const propertyName of properties) {
-                    const propertyInfo = this.getProperty(propertyName)
-                    if(Array.isArray(propertyInfo['propertyUrl'])){
-                        propertyInfo['propertyUrl'].forEach(element => {
-                            this.addSolidData(propertyName, element)
-                        });
-                    }else{
-                        this.addSolidData(propertyName, propertyInfo['propertyUrl'])
-                    }
+                if (typeof value != "string") {
+                    console.log(`"${property}" property value must be a string.`)
+                    return false
                 }
-
-                console.log("I must")
-
-                try{
-                    const savedSolidDataset = await saveSolidDatasetAt(
-                        resourceUrl+'#'+name,
-                        dataset,
-                        { ...(session.info.isLoggedIn && {fetch: fetch}) }
-                    );
-                }catch(error){
-                    console.error('Oups:'+error.message);
+            case 'StringNoLocale' :
+            case 'StringEnglish' :         
+                if (typeof value != "string") {
+                    console.log(`"${property}" property value must be a string.`)
+                    return false
                 }
-            } else {
-                console.error(error.message);
-            }
+                break
+            default:
+                console.log(`Sorry, property type "${predicate['datatype']}" is unknown.`)
+                return false
+        }
+        return true
+    }
+
+    //
+    // Return data value from Solid dataset
+    //
+    getValueFromThing(property){
+        const predicate = this.#getPredicate(property)
+        switch (predicate['datatype']) {
+            case 'Boolean':    
+                if(!predicate['multiple'])
+                    return getBoolean(this.thing, predicate['uri'])
+                else
+                    return getBooleanAll(this.thing, predicate['uri'])
+            case 'URL':
+                if(!predicate['multiple'])
+                    return getUrl(this.thing, predicate['uri'])
+                else
+                    return getUrlAll(this.thing, predicate['uri'])
+            case 'Date':
+                if(!predicate['multiple'])
+                    return getDate(this.thing, predicate['uri'])
+                else
+                    return getDateAll(this.thing, predicate['uri'])
+            case 'Datetime':
+                if(!predicate['multiple'])
+                    return getDatetime(this.thing, predicate['uri'])
+                else
+                    return getDatetimeAll(this.thing, predicate['uri'])
+            case 'Integer':
+                if(!predicate['multiple'])
+                    return getInteger(this.thing, predicate['uri'])
+                else
+                    return getIntegerAll(this.thing, predicate['uri'])
+            case 'Decimal':
+                if(!predicate['multiple'])
+                    return getDecimal(this.thing, predicate['uri'])
+                else
+                    return getDecimalAll(this.thing, predicate['uri'])
+            case 'StringWithLocale':
+                if(!predicate['multiple'])
+                    return getStringWithLocale(this.thing, predicate['uri'])
+                else
+                    return getStringWithLocaleAll(this.thing, predicate['uri'])
+            case 'StringNoLocale' :
+                if(!predicate['multiple'])
+                    return getStringNoLocale(this.thing, predicate['uri'])
+                else
+                    return getStringNoLocaleAll(this.thing, predicate['uri'])
+            case 'StringEnglish' :         
+                if(!predicate['multiple'])
+                    return getStringEnglish(this.thing, predicate['uri'])
+                else
+                    return getStringEnglishAll(this.thing, predicate['uri'])
+            default:  
+                return null
         }
     }
 
     //
-    // Set data to Solid dataset
+    // Add data value to Solid dataset
     //
-    setSolidData(propertyName, property){
-        const propertyInfo = this.getProperty(propertyName)
-        if(this.data[propertyName] && !propertyInfo['readOnly'] && this.data[propertyName] && this.data[propertyName].length !== 0){
-            switch (propertyInfo['propertyType']) {
-                case 'Boolean':    
-                    break
-                case 'URL':   
-                    if(Array.isArray(this.data[propertyName])){
-                        for (const value of this.data[propertyName]) {
-                            this.thing = setUrl(this.thing, property, value)
-                        }
-                    }   
-                    else{
-                        this.thing = setUrl(this.thing, property, this.data[propertyName])
-                    }
-                    break
-                case 'Date':
-                    this.thing = buildThing(this.thing).addDate(property, this.data[propertyName])
-                    break
-                case 'Datetime':
-                    this.thing = buildThing(this.thing).addDatetime(property, this.data[propertyName])
-                    break
-                case 'Integer':
-                    this.thing = buildThing(this.thing).addInteger(property, this.data[propertyName])
-                    break
-                case 'Decimal':
-                    this.thing = buildThing(this.thing).addDecimal(property, this.data[propertyName])
-                    break
-                case 'StringWithLocale':
-                    this.thing = buildThing(this.thing).addStringWithLocale(property, this.data[propertyName])
-                    break
-                case 'StringNoLocale' :
-                    this.thing = setStringNoLocale(this.thing, property, this.data[propertyName])
-                    break
-                case 'StringEnglish' :         
-                    this.thing = buildThing(this.thing).addStringEnglish(property, this.data[propertyName])
-                    break
-                default:  
-            }  
-        }
-        /*
-         // Check if element has pre save value
-         if (propertyInfo['defaultValue']){
-            this.data[propertyName] = propertyInfo['defaultValue']
+    #addValueToThing(property, value, locale){
+        const predicate = this.#getPredicate(property)
+        if(Array.isArray(value) && predicate['multiple']){
+            for (const el of value ) {
+                this.#setValueToThing(property, el, locale)
+            }
         }else{
-            this.data[propertyName] = value
+            this.#setValueToThing(property, value, locale)
         }
-        */
     }
-    
+
     //
-    // Add data to Solid dataset
+    // Set data
     //
-    addSolidData(propertyName, property){
-        const propertyInfo = this.getProperty(propertyName)
-        
-        if(this.data[propertyName] && !propertyInfo['readOnly'] && this.data[propertyName] && this.data[propertyName].length !== 0){
-        
-            switch (propertyInfo['propertyType']) {
-                case 'Boolean':    
+    #setValueToThing(property, value, locale){
+        const predicate = this.#getPredicate(property)
+        if(this.#checkIfValueIsValid(property, value, locale)&& !predicate['value']){
+            switch (predicate['datatype']) {
+                case 'Boolean':
+                    if(!predicate['multiple'])  
+                        this.thing = setBoolean(this.thing, predicate['uri'], value)
+                    else
+                        this.thing = addBoolean(this.thing, predicate['uri'], value)
                     break
-                case 'URL':   
-                    if(Array.isArray(this.data[propertyName])){
-                        for (const value of this.data[propertyName]) {
-                            this.thing = addUrl(this.thing, property, value)
-                        }
-                    }   
-                    else{
-                        this.thing = addUrl(this.thing, property, this.data[propertyName])
-                    }
+                case 'URL':
+                    if(!predicate['multiple'])    
+                        this.thing = setUrl(this.thing, predicate['uri'], value)
+                    else
+                        this.thing = addUrl(this.thing, predicate['uri'], value)
                     break
                 case 'Date':
-                    this.thing = addDate(this.thing, property, this.data[propertyName])
+                    if(!predicate['multiple'])  
+                        this.thing = setDate(this.thing, predicate['uri'], value)
+                    else
+                        this.thing =  addDate(this.thing, predicate['uri'], value)             
                     break
                 case 'Datetime':
-                    this.thing = addDatetime(this.thing, property, this.data[propertyName])
+                    if(!predicate['multiple'])  
+                        this.thing = setDatetime(this.thing, predicate['uri'], value)
+                    else
+                        this.thing =  addDatetime(this.thing, predicate['uri'], value)                 
                     break
                 case 'Integer':
-                    this.thing = addInteger(this.thing, property, this.data[propertyName])
+                    if(!predicate['multiple'])  
+                        this.thing = setInteger(this.thing, predicate['uri'], value)
+                    else
+                        this.thing = addInteger(this.thing, predicate['uri'], value)  
                     break
                 case 'Decimal':
-                    this.thing = addDecimal(this.thing, property, this.data[propertyName])
+                    if(!predicate['multiple']) 
+                        this.thing = setDecimal(this.thing, predicate['uri'], value)
+                    else
+                        this.thing = addDecimal(this.thing, predicate['uri'], value)     
                     break
                 case 'StringWithLocale':
-                    this.thing = addStringWithLocale(this.thing, property, this.data[propertyName])
+                    if(!predicate['multiple']) 
+                        this.thing = setStringWithLocale(this.thing, predicate['uri'], value, locale)
+                    else
+                        this.thing = addStringWithLocale(this.thing, predicate['uri'], value, locale)  
                     break
                 case 'StringNoLocale' :
-                    this.thing = addStringNoLocale(this.thing, property, this.data[propertyName])
+                    if(!predicate['multiple']) 
+                        this.thing = setStringNoLocale(this.thing, predicate['uri'], value)
+                    else
+                        this.thing = addStringNoLocale(this.thing, predicate['uri'], value)
                     break
-                case 'StringEnglish' :         
-                    this.thing = addStringEnglish(this.thing, property, this.data[propertyName])
+                case 'StringEnglish' :
+                    if(!predicate['multiple']) 
+                        this.thing = setWithLocale(this.thing, predicate['uri'], value, "en")
+                    else
+                        this.thing = addStringWithLocale(this.thing, predicate['uri'], value, "en")                
                     break
                 default:  
             }  

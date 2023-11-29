@@ -40,9 +40,8 @@ export class SolidWebIDProfile extends CapsuleElement{
     constructor() {
         super()
         this.name = "SolidWebIDProfile"
-        this.spec = "https://solid.github.io/webid-profile/"
-        this.setModel(model)
-        this.data = {}
+        this.setProperties(model)
+ 
     }
 
 
