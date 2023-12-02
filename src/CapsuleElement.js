@@ -5,6 +5,8 @@ import { getSolidDataset, saveSolidDatasetAt, createSolidDataset, addStringNoLoc
  * @param {properties} Data model representation of the element.
  * @param {thingName} Thing name of the element.
  * @param {thing} Solid Thing.
+ * @param {solidDatasetUrl} URL of the element.
+ * @param {solidDataset} Owner Solid Dataset of the element.
  */
 
 export class CapsuleElement {
@@ -16,8 +18,13 @@ export class CapsuleElement {
         this.properties = this.#setProperties(properties)
         this.solidDatasetUrl = null
         this.solidDataset = createSolidDataset()
-        this.thingName = Date.now() // ==> NEED SOME IMPROVEMENTS
+        this.thingName = this.#createUniqueName()
         this.thing = createThing({ name: this.thingName })
+    }
+
+    // Generate an unique element name
+    #createUniqueName(){
+        return this.constructor.name + Date.now()
     }
 
     //
@@ -26,7 +33,7 @@ export class CapsuleElement {
     #setProperties(properties) {
         for (const [property, predicate] of Object.entries(properties)) {
             if (!predicate.hasOwnProperty('uri') || !predicate.hasOwnProperty('datatype')) {
-                throw new Error(`The ${property}'s property definition is not valid.`)
+                throw new Error(`The ${property}'s property is not valid in ${this.constructor.name} element definition.`)
             }
         }
         return properties
@@ -262,7 +269,7 @@ export class CapsuleElement {
     }
 
     //
-    // Return data value from Solid dataset
+    // Return data value from Thing
     //
     getValueFromThing(property){
         const predicate = this.#getPredicate(property)
@@ -318,7 +325,7 @@ export class CapsuleElement {
     }
 
     //
-    // Add data value to Solid dataset
+    // Add data value to Thing
     //
     #addValueToThing(property, value, locale){
         const predicate = this.#getPredicate(property)
@@ -332,7 +339,7 @@ export class CapsuleElement {
     }
 
     //
-    // Set data
+    // Set data to Thing
     //
     #setValueToThing(property, value, locale){
         const predicate = this.#getPredicate(property)

@@ -28,7 +28,7 @@ async function handleRedirectAfterLogin() {
         // console.log(bookmark.dataset)
         await bookmark.create('https://solid.brikkr.com/Vincent-Plateel/bookmarks/personal')
        // await bookmark.update()
-        //console.log(bookmark.getValue('label'))
+       console.log(bookmark.getValue('label'))
     }
 }
   

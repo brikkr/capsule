@@ -32,7 +32,8 @@ async function startLogin(issuer) {
     // Start the Login Process if not already logged in.
     let solidIssuer = issuer
     if(issuer.length == 0){
-        solidIssuer =  'https://solid.brikkr.com/'
+        //solidIssuer =  'https://solid.brikkr.com/'
+        solidIssuer =  'https://login.inrupt.com' 
     }
 
    if (!getDefaultSession().info.isLoggedIn ) {
