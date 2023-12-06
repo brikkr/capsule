@@ -23,21 +23,6 @@ export class CapsuleElement {
         this.#dataset = createSolidDataset()
     }
 
-    /**
-     * Check the properties object.
-     * @param {object} properties - The properties definition of the element.
-     * @return {boolean} true if correct, false otherwise.
-     */
-    #checkProperties(properties){
-        for (const [property, predicate] of Object.entries(properties)) {
-            if (!predicate.hasOwnProperty('uri') || !predicate.hasOwnProperty('datatype')) {
-                console.error(`The ${property}'s property is not valid in ${this.constructor.name} element definition.`)
-                return false
-            }
-        }
-        return true
-    }
-
    /**
      * List all properties of the element.
      * @return {Array} list of properties.
@@ -62,16 +47,51 @@ export class CapsuleElement {
     /**
      *  Fetch element
      * @param {string} url - The url of the element.
+     * @return {boolean} true if success false if anything else.
     */
     async fetch(url){
         const dataset = await this.getDataset(url)
         if(dataset){
             this.#dataset = dataset
-            this.#url = url
             const thing = getThing(this.#dataset, url)
-            if(thing)
+            if(thing){
+                this.#url = url
                 this.#thing = thing
+                return true
+            }else{
+                return false
+            }
         }
+    }
+
+    /**
+     *  Create empty element at url
+     * @param {string} url - The url of the element.
+    */
+    create(url){
+        this.#thing = createThing({url:url})
+        this.#url = url
+    }
+
+
+    /**
+     *  Save element
+     * @param {string} url - The url of the element.
+     * @return {boolean} true if success false if anything else.
+    */
+    async save(){
+        const session = getDefaultSession();
+        try {
+            this.#dataset = setThing(this.#dataset, this.#thing)
+            await saveSolidDatasetAt(
+              this.#url,
+              this.#dataset,
+              { ...(session.info.isLoggedIn && {fetch: fetch}) }
+            );
+            return true
+        } catch (error) {
+            return false
+        } 
     }
 
     /**
@@ -91,142 +111,92 @@ export class CapsuleElement {
             return false
         } 
     }
-
-
+   
     /**
-     * Get value of a property.
+     * Set value of a property.
      * @param {string} property - The property name of the element.
-     * @return {(Array|string|boolean|number)} property's value of the element or null if property or value is not defined.
+     * @param{(Array|string|boolean|number)} property's value of the element.
+     * @param {string} locale - The locale of string (optional).
+     * @return {boolean} true if success false if anything else.
      */
-    getValue(property){
-        const predicate = this.#getPredicate(property)
-        switch (predicate['datatype']) {
-            case 'Boolean':    
-                if(!predicate['multiple'])
-                    return getBoolean(this.thing, predicate['uri'])
-                else
-                    return getBooleanAll(this.thing, predicate['uri'])
-            case 'URL':
-                if(!predicate['multiple'])
-                    return getUrl(this.thing, predicate['uri'])
-                else
-                    return getUrlAll(this.thing, predicate['uri'])
-            case 'Date':
-                if(!predicate['multiple'])
-                    return getDate(this.thing, predicate['uri'])
-                else
-                    return getDateAll(this.thing, predicate['uri'])
-            case 'Datetime':
-                if(!predicate['multiple'])
-                    return getDatetime(this.thing, predicate['uri'])
-                else
-                    return getDatetimeAll(this.thing, predicate['uri'])
-            case 'Integer':
-                if(!predicate['multiple'])
-                    return getInteger(this.thing, predicate['uri'])
-                else
-                    return getIntegerAll(this.thing, predicate['uri'])
-            case 'Decimal':
-                if(!predicate['multiple'])
-                    return getDecimal(this.thing, predicate['uri'])
-                else
-                    return getDecimalAll(this.thing, predicate['uri'])
-            case 'StringWithLocale':
-                if(!predicate['multiple'])
-                    return getStringWithLocale(this.thing, predicate['uri'])
-                else
-                    return getStringWithLocaleAll(this.thing, predicate['uri'])
-            case 'StringNoLocale' :
-                if(!predicate['multiple'])
-                    return getStringNoLocale(this.thing, predicate['uri'])
-                else
-                    return getStringNoLocaleAll(this.thing, predicate['uri'])
-            case 'StringEnglish' :         
-                if(!predicate['multiple'])
-                    return getStringEnglish(this.thing, predicate['uri'])
-                else
-                    return getStringEnglishAll(this.thing, predicate['uri'])
-            default:  
-                return null
-        }
-    }
-
-
-
-    //
-    // Update thing in SolidDataset
-    //
-    async update(){
-        const session = getDefaultSession();
-        try {
-            this.solidDataset = setThing(this.solidDataset, this.thing)
-            await saveSolidDatasetAt(
-              this.solidDatasetUrl,
-              this.solidDataset,
-              { ...(session.info.isLoggedIn && {fetch: fetch}) }
-            );
-            return true
-        } catch (error) {
-            if (typeof error.statusCode === "number" && error.statusCode === 404) {
-                console.error("Ressource not found")
-                return null
-            }
-            if (typeof error.statusCode === "number" && error.statusCode === 401) {
-                console.error("Not authorized to append this dataset.")
-                return false
-            }
-        } 
-    }
-
-    //
-    // Create new thing in SolidDataset
-    //
-    async create(solidDatasetUrl){
-        if(!solidDatasetUrl){
-            console.log('A SolidDataset URL is required.')
-            return false
-        }
-        try {
-            const session = getDefaultSession();
-            await this.loadSolidDatasetAt(solidDatasetUrl)
-            this.setDefaultValues()
-            this.solidDataset = setThing(this.solidDataset, this.thing)
-            await saveSolidDatasetAt(
-              solidDatasetUrl,
-              this.solidDataset,
-              { ...(session.info.isLoggedIn && {fetch: fetch}) }
-            );
-            return true
-        } catch (error) {
-            console.log(error)
-            if (typeof error.statusCode === "number" && error.statusCode === 401) {
-                console.error("Not authorized to append/write in SolidDataset.")
-                return false
-            }
-        } 
-    }
-
-    //
-    // Create new thing in specific Webid
-    //
-    async createInWebId(webID){
-        
-    }
-
-    
-    
-
-
-    //
-    // Return value for a specific property
-    //
-    getValue(property){
-        if (this.#checkIfPropertyExists(property)){
-            return this.getValueFromThing(property)
+    setValue(property, value, locale){
+        if (this.#checkIfPropertyExists(property) ){
+            this.#addValueToThing(property, value, locale)
         }else{
             return false
         }
     }
+
+    /**
+     * Get value of a property.
+     * @param {string} property - The property name of the element.
+     * @param {string} locale - The locale of string (optional).
+     * @return {(Array|string|boolean|number)} property's value of the element or null if property or value is not defined.
+     */
+    getValue(property, locale){
+        const predicate = this.#getPredicate(property)
+        if(predicate.hasOwnProperty('datatype') &&  predicate.hasOwnProperty('uri')){
+            switch (predicate['datatype']) {
+                case 'Boolean':    
+                    if(!predicate['multiple'])
+                        return getBoolean(this.thing, predicate['uri'])
+                    else
+                        return getBooleanAll(this.thing, predicate['uri'])
+                case 'URL':
+                    if(!predicate['multiple'])
+                        return getUrl(this.thing, predicate['uri'])
+                    else
+                        return getUrlAll(this.thing, predicate['uri'])
+                case 'Date':
+                    if(!predicate['multiple'])
+                        return getDate(this.thing, predicate['uri'])
+                    else
+                        return getDateAll(this.thing, predicate['uri'])
+                case 'Datetime':
+                    if(!predicate['multiple'])
+                        return getDatetime(this.thing, predicate['uri'])
+                    else
+                        return getDatetimeAll(this.thing, predicate['uri'])
+                case 'Integer':
+                    if(!predicate['multiple'])
+                        return getInteger(this.thing, predicate['uri'])
+                    else
+                        return getIntegerAll(this.thing, predicate['uri'])
+                case 'Decimal':
+                    if(!predicate['multiple'])
+                        return getDecimal(this.thing, predicate['uri'])
+                    else
+                        return getDecimalAll(this.thing, predicate['uri'])
+                case 'StringWithLocale':
+                    try {
+                        Intl.getCanonicalLocales(locale);
+                    } catch (err) {
+                        return null
+                    }
+                    if(!predicate['multiple'])
+                        return getStringWithLocale(this.thing, predicate['uri'], locale)
+                    else
+                        return getStringWithLocaleAll(this.thing, predicate['uri'], locale)
+                case 'StringNoLocale' :
+                    if(!predicate['multiple'])
+                        return getStringNoLocale(this.thing, predicate['uri'])
+                    else
+                        return getStringNoLocaleAll(this.thing, predicate['uri'])
+                case 'StringEnglish' :         
+                    if(!predicate['multiple'])
+                        return getStringEnglish(this.thing, predicate['uri'])
+                    else
+                        return getStringEnglishAll(this.thing, predicate['uri'])
+                default:  
+                    return null
+            }
+        }else{
+            return null
+        }
+    }
+
+
+
 
     //
     // Check if property exists
@@ -243,7 +213,7 @@ export class CapsuleElement {
     //
     // Set a property value
     //
-    set(property, value, locale){
+    setValue(property, value, locale){
         if (this.#checkIfPropertyExists(property) ){
             this.#addValueToThing(property, value, locale)
         }else{

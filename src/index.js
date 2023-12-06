@@ -22,13 +22,14 @@ async function handleRedirectAfterLogin() {
     const session = getDefaultSession();
     if (session.info.isLoggedIn) {
         let bookmark = new BookmarkElement()
-        //await bookmark.fetch('https://solid.brikkr.com/Vincent-Plateel/bookmarks/personal#1701031823769')
+        // await bookmark.fetch('https://solid.brikkr.com/Vincent-Plateel/bookmarks/personal#1701031823769')
+        
       //  bookmark.set('label', 'NUCLEAR')
-        bookmark.set('label', ['DANGER', 'test', "youpi"])
         // console.log(bookmark.dataset)
-        await bookmark.create('https://solid.brikkr.com/Vincent-Plateel/bookmarks/personal')
-       // await bookmark.update()
-       console.log(bookmark.getValue('label'))
+        bookmark.create('https://storage.inrupt.com/c471876d-9177-4bbe-84d9-61a1484d499c/bookmarkss/test#test')
+        bookmark.setValue('title', 'TITLE')
+       // console.log(bookmark.getValue('title'))
+       // bookmark.save()
     }
 }
   

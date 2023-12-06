@@ -31,7 +31,7 @@ async function startLogin(issuer) {
     let solidIssuer = issuer
     if(issuer.length == 0){
         //solidIssuer =  'https://solid.brikkr.com/'
-        solidIssuer =  'https://login.inrupt.com' 
+       solidIssuer =  'https://login.inrupt.com' 
     }
 
    if (!getDefaultSession().info.isLoggedIn ) {
