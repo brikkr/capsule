@@ -21,8 +21,6 @@ const input = (attrs) =>
         attrs.error && caps('span', attrs.error)
 )
   
-  
-  
 const onsubmit = e => {
     e.preventDefault()
     startLogin(issuer.value) 

@@ -5,8 +5,8 @@ import { getSolidDataset, saveSolidDatasetAt, createSolidDataset, addStringNoLoc
  * @param {properties} Data model representation of the element.
  * @param {thingName} Thing name of the element.
  * @param {thing} Solid Thing.
- * @param {solidDatasetUrl} URL of the element.
- * @param {solidDataset} Owner Solid Dataset of the element.
+ * @param {datasetUrl} URL of the element.
+ * @param {dataset} Owner Solid Dataset of the element.
  */
 
 export class CapsuleElement {
@@ -20,6 +20,7 @@ export class CapsuleElement {
         this.solidDataset = createSolidDataset()
         this.thingName = this.#createUniqueName()
         this.thing = createThing({ name: this.thingName })
+        this.defaultContainer = this.constructor.name.toLowerCase()
     }
 
     // Generate an unique element name
@@ -120,6 +121,13 @@ export class CapsuleElement {
                 return false
             }
         } 
+    }
+
+    //
+    // Create new thing in specific Webid
+    //
+    async createInWebId(webID){
+        
     }
 
     
