@@ -1,21 +1,20 @@
 import { CapsuleElement } from "../CapsuleElement";
-import { RDF, RDFS, FOAF, LDP, OWL, SCHEMA_INRUPT } from "@inrupt/vocab-common-rdf";
+import { RDF, RDFS, FOAF, LDP, OWL, SCHEMA_INRUPT,DCTERMS } from "@inrupt/vocab-common-rdf";
 import { SOLID } from "@inrupt/vocab-solid";
 
 const properties = { 
     title : {
-        uri : RDFS.label,
+        uri : DCTERMS.title,
         datatype : "StringNoLocale",
-        multiple: true,
     },
     url : {
-        uri : RDFS.label,
+        uri : SCHEMA_INRUPT.url,
         datatype : "URL",
     },
 }
 
 export class BookmarkElement extends CapsuleElement{
     constructor() {
-        super(properties)
+        super('bookmarks', properties)
     }
 }
