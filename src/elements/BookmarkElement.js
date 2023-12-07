@@ -10,11 +10,13 @@ const properties = {
     url : {
         uri : SCHEMA_INRUPT.url,
         datatype : "URL",
+        required: true,
+        default: "https://brikkr.com",
     },
 }
 
 export class BookmarkElement extends CapsuleElement{
     constructor() {
-        super('bookmarks', properties)
+        super(properties)
     }
 }

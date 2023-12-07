@@ -22,14 +22,14 @@ async function handleRedirectAfterLogin() {
     const session = getDefaultSession();
     if (session.info.isLoggedIn) {
         let bookmark = new BookmarkElement()
-        // await bookmark.fetch('https://solid.brikkr.com/Vincent-Plateel/bookmarks/personal#1701031823769')
+       // await bookmark.fetch('https://storage.inrupt.com/c471876d-9177-4bbe-84d9-61a1484d499c/favorites/test#test')
         
       //  bookmark.set('label', 'NUCLEAR')
         // console.log(bookmark.dataset)
-        bookmark.create('https://storage.inrupt.com/c471876d-9177-4bbe-84d9-61a1484d499c/bookmarkss/test#test')
-        bookmark.setValue('title', 'TITLE')
+        await bookmark.create('https://storage.inrupt.com/c471876d-9177-4bbe-84d9-61a1484d499c/favorites/test#test')
+        bookmark.setValue('title', 'TITGOU')
        // console.log(bookmark.getValue('title'))
-       // bookmark.save()
+        await bookmark.save()
     }
 }
   
