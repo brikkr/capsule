@@ -13,7 +13,12 @@ export class CapsuleElement {
 
     /**
      * Create a CapsuleElement.
-     * @param {object} properties - The properties definition of the element.
+     * @param {Json} properties - The properties definition of the element.
+     *   @param {String} properties.name Property name
+     *     @param {String} properties.name.uri Predicate URI
+     *     @param {String} properties.name.datatype Predicate datatype
+     *     @param {Boolean} properties.name.required Define if value is required or not
+     *     @param {(Array|String|Boolean|Number)} properties.name.default Set default value
      */
     constructor(properties) {
         this.#properties = properties
@@ -34,8 +39,8 @@ export class CapsuleElement {
 
     /**
      * Get predicate of a property.
-     * @param {string} property - The property name of the element.
-     * @return {object} property's predicate or null if property is not defined.
+     * @param {String} property - The property name of the element.
+     * @return {Object} property's predicate or null if property is not defined.
      */
     #getPredicate(property){
         return this.#properties[property]
@@ -43,8 +48,8 @@ export class CapsuleElement {
 
     /**
      * Fetch element
-     * @param {string} url - The url of the element.
-     * @return {boolean} true if success false if anything else.
+     * @param {String} url - The url of the element.
+     * @return {Boolean} true if success false if anything else.
     */
     async fetch(url){
         const dataset = await this.getDataset(url)
@@ -63,7 +68,7 @@ export class CapsuleElement {
 
     /**
      * Create element
-     * @param {string} url - The url of the element.
+     * @param {String} url - The url of the element.
     */
     async create(url){
         const dataset = await this.getDataset(url)
@@ -75,18 +80,18 @@ export class CapsuleElement {
                 this.#thing = thing
             }else{
                 this.#thing = createThing({url:url})
-                this.#addDefaultValues()
+                this.#setDefaultValues()
             }
         }else{
             this.#thing = createThing({url:url})
-            this.#addDefaultValues()
+            this.#setDefaultValues()
         }
     }
 
     /**
      * Delete element
-     * @param {string} url - The url of the element.
-     * @return {boolean} true if success false if anything else.
+     * @param {String} url - The url of the element.
+     * @return {Boolean} true if success false if anything else.
     */
     async delete(url){
         const dataset = await this.getDataset(url)
@@ -116,7 +121,7 @@ export class CapsuleElement {
 
     /**
      * Save element
-     * @return {boolean} true if success false if anything else.
+     * @return {Boolean} true if success false if anything else.
     */
     async save(){
         if(this.#checkRequiredValues()){
@@ -138,7 +143,7 @@ export class CapsuleElement {
 
     /**
      * Get the SolidDataset from element url
-     * @param {string} url - The url of the element.
+     * @param {String} url - The url of the element.
      * @return {dataset} solid dataset of the element.
     */
     async getDataset(url){
@@ -156,9 +161,9 @@ export class CapsuleElement {
    
     /**
      * Set value of a property.
-     * @param {string} property - The property name of the element.
-     * @param {(Array|string|boolean|number)} property's value of the element.
-     * @param {string} locale - The locale of string (optional).
+     * @param {String} property - The property name of the element.
+     * @param {(Array|String|Boolean|Number)} property's value of the element.
+     * @param {String} locale - The locale of string (optional).
      */
     setValue(property, value, locale){
         const predicate = this.#getPredicate(property)
@@ -175,9 +180,9 @@ export class CapsuleElement {
 
     /**
      * Get value of a property.
-     * @param {string} property - The property name of the element.
-     * @param {string} locale - The locale of string (optional).
-     * @return {(Array|string|boolean|number)} property's value of the element or null if property or value is not defined.
+     * @param {String} property - The property name of the element.
+     * @param {String} locale - The locale of string (optional).
+     * @return {(Array|String|Boolean|Number)} property's value of the element or null if property or value is not defined.
      */
     getValue(property, locale){
         const predicate = this.#getPredicate(property)
@@ -243,9 +248,9 @@ export class CapsuleElement {
 
     /**
      * Add value to Thing.
-     * @param {string} property - The property name of the element.
-     * @param {(Array|string|boolean|number)} property's value of the element.
-     * @param {string} locale - The locale of string (optional).
+     * @param {String} property - The property name of the element.
+     * @param {(Array|String|Boolean|Number)} property's value of the element.
+     * @param {String} locale - The locale of string (optional).
      */
     #addValueToThing(property, value, locale){
         if(this.#checkValueConsistency(property, value, locale)){
@@ -312,10 +317,10 @@ export class CapsuleElement {
 
     /**
      * Check consistency between value and predicate datatype.
-     * @param {string} property - The property name of the element.
-     * @param {(Array|string|boolean|number)} property's value of the element.
-     * @param {string} locale - The locale of string (optional).
-     * @return {boolean} true if success false if anything else.
+     * @param {String} property - The property name of the element.
+     * @param {(Array|String|Boolean|Number)} property's value of the element.
+     * @param {String} locale - The locale of string (optional).
+     * @return {Boolean} true if success false if anything else.
      */
     #checkValueConsistency(property, value, locale){
         const predicate = this.#getPredicate(property)
@@ -406,9 +411,9 @@ export class CapsuleElement {
     }
 
     /**
-     * Add default values to element.
+     * Set default values to element.
      */
-    #addDefaultValues(){
+    #setDefaultValues(){
         for (const [property] of Object.entries(this.#properties)) {
             const predicate = this.#getPredicate(property)
             if(predicate.hasOwnProperty('default')){
