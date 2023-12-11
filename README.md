@@ -9,10 +9,10 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 Capsule contains the tools you need to build a Solid Application.
-More specifically, the SDK includes:
-* Solid Client Libraries 🗂️
-* A JavaScript library for building user interfaces 💻
-* Plug-ins 🔌
+More specifically, the framework includes:
+* Solid Client libraries integration 🗂️
+* User interfaces building 💻
+* Data handling 🔌
 * Code examples 🤓
 * Documentation 📚
 
