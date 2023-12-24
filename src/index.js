@@ -1,4 +1,4 @@
-import caps from "mithril";
+import capsuleUI from "mithril";
 
 import {
     handleIncomingRedirect,
@@ -6,8 +6,13 @@ import {
     fetch
   } from "@inrupt/solid-client-authn-browser";
 
+import {
+    WebsocketNotification,
+} from "@inrupt/solid-client-notifications";
+
 import { BookmarkElement } from "./elements/BookmarkElement";
 import { LoginForm } from "./widgets/LoginForm";
+import { CapsuleSet } from "./CapsuleSet";
 
 //let bookmark = new Bookmark('https://solid.brikkr.com/Vincent-Plateel/bookmarks/public#book2')
 //bookmark.setValue("label", "test")
@@ -20,12 +25,16 @@ import { LoginForm } from "./widgets/LoginForm";
 async function handleRedirectAfterLogin() {
     await handleIncomingRedirect(); // no-op if not part of login redirect
     const session = getDefaultSession();
-    if (session.info.isLoggedIn) {
-        let bookmark = new BookmarkElement()
-       // await bookmark.fetch('https://storage.inrupt.com/c471876d-9177-4bbe-84d9-61a1484d499c/favorites/test#test')
-        await bookmark.create('https://storage.inrupt.com/c471876d-9177-4bbe-84d9-61a1484d499c/favorites/test')
-        bookmark.setValue('title', 'TITGOU')
-        await bookmark.save()
+    
+    if(session.info.isLoggedIn) {
+        let dataset = new CapsuleSet()
+        await dataset.fetch("https://storage.inrupt.com/c471876d-9177-4bbe-84d9-61a1484d499c/favorites/test")
+        let elements = dataset.getAllElements()
+        elements.forEach(async (element) => {
+            console.log(element)
+            let bookmark = new BookmarkElement()
+            bookmark.find(dataset, element.url)
+        });
     }
 }
   
@@ -33,4 +42,4 @@ async function handleRedirectAfterLogin() {
 handleRedirectAfterLogin();
 
 
-caps.render(document.body, caps(LoginForm));
+capsuleUI.render(document.body, capsuleUI(LoginForm));

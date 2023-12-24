@@ -158,6 +158,23 @@ export class CapsuleElement {
             return false
         } 
     }
+
+    /**
+     * Set the SolidDataset 
+     */
+    find(dataset, url){
+        if(dataset){
+            this.#dataset = dataset
+            console.log(this.#dataset)
+            if(url){
+                this.#url = url
+                let thing = getThing(this.#dataset, url)
+                if(thing != null){
+                    this.#thing = thing
+                }
+            }
+        }
+    }
    
     /**
      * Set value of a property.

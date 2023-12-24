@@ -1,4 +1,4 @@
-import caps from "mithril";
+import capsuleUI from "mithril";
 import {  login, handleIncomingRedirect, getDefaultSession } from '@inrupt/solid-client-authn-browser'
 
 const issuer = {
@@ -8,9 +8,9 @@ const issuer = {
 }
   
 const input = (attrs) =>
-    caps('label',
-        caps('span', attrs.label),
-        caps('input', {
+    capsuleUI('label',
+        capsuleUI('span', attrs.label),
+        capsuleUI('input', {
         type: 'url',    
         value: attrs.value,
         oninput: e => {
@@ -18,7 +18,7 @@ const input = (attrs) =>
             attrs.error && validate()
         }
         }),
-        attrs.error && caps('span', attrs.error)
+        attrs.error && capsuleUI('span', attrs.error)
 )
   
 const onsubmit = e => {
@@ -50,11 +50,11 @@ async function completeLogin() {
 
 export class LoginForm {
     view() {
-        return caps('form', {
+        return capsuleUI('form', {
                 onsubmit,
             },
             input(issuer),
-            caps('button', 'login')
+            capsuleUI('button', 'login')
         )
     }
 }
